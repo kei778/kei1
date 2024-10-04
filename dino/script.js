@@ -1,90 +1,55 @@
-const dinosaur = document.getElementById('dinosaur');
-const cactus = document.getElementById('cactus');
-const gameArea = document.getElementById('game');
-
+const dino = document.getElementById("dino");
+const cactus = document.getElementById("cactus");
 let isJumping = false;
-let gameOver = false;
+let gravity = 0.9;
 
-// 障害物を動かす関数
-function moveCactus() {
-    let cactusPosition = 600; // 画面の右端からスタート
-    const cactusSpeed = 5; // 障害物の速度
-
-    const cactusInterval = setInterval(() => {
-        if (gameOver) {
-            clearInterval(cactusInterval);
-            return;
-        }
-
-        cactusPosition -= cactusSpeed; // 障害物を左に移動
-        cactus.style.right = cactusPosition + 'px';
-
-        // 障害物が画面外に出たらリセット
-        if (cactusPosition < -20) {
-            cactusPosition = 600; // 画面外から再スタート
-        }
-
-        // 衝突判定
-        if (isCollision()) {
-            clearInterval(cactusInterval);
-            alert("ゲームオーバー！");
-            gameOver = true;
-        }
-    }, 20);
-}
-
-// ジャンプの処理
-function jump() {
-    if (isJumping || gameOver) return; // ジャンプ中またはゲームオーバーの場合は何もしない
-
-    isJumping = true;
-
-    let jumpHeight = 0;
-    const jumpInterval = setInterval(() => {
-        if (jumpHeight >= 100) {
-            clearInterval(jumpInterval);
-            fall(); // 最高到達点に達したら落下処理を開始
-        } else {
-            jumpHeight += 10;
-            dinosaur.style.bottom = (20 + jumpHeight) + 'px'; // ジャンプ
-        }
-    }, 20);
-}
-
-// 落ちる処理
-function fall() {
-    let fallHeight = 100;
-    const fallInterval = setInterval(() => {
-        if (fallHeight <= 0) {
-            clearInterval(fallInterval);
-            isJumping = false;
-            dinosaur.style.bottom = '20px'; // 初期位置に戻す
-        } else {
-            fallHeight -= 10;
-            dinosaur.style.bottom = (20 + fallHeight) + 'px'; // 落ちる
-        }
-    }, 20);
-}
-
-// 衝突判定
-function isCollision() {
-    const dinosaurRect = dinosaur.getBoundingClientRect();
-    const cactusRect = cactus.getBoundingClientRect();
-
-    return !(
-        dinosaurRect.top > cactusRect.bottom ||
-        dinosaurRect.bottom < cactusRect.top ||
-        dinosaurRect.right < cactusRect.left ||
-        dinosaurRect.left > cactusRect.right
-    );
-}
-
-// スペースキーでジャンプ
-document.addEventListener('keydown', (event) => {
-    if (event.code === 'Space') {
+document.addEventListener("keydown", function(event) {
+    if (event.code === "Space" && !isJumping) {
         jump();
     }
 });
 
-// ゲーム開始
-moveCactus();
+function jump() {
+    let position = 0;
+    isJumping = true;
+
+    let upInterval = setInterval(() => {
+        if (position >= 150) {
+            clearInterval(upInterval);
+            // Down
+            let downInterval = setInterval(() => {
+                if (position <= 0) {
+                    clearInterval(downInterval);
+                    isJumping = false;
+                } else {
+                    position -= 5;
+                    dino.style.bottom = position + "px";
+                }
+            }, 20);
+        } else {
+            // Up
+            position += 20;
+            dino.style.bottom = position + "px";
+        }
+    }, 20);
+}
+
+// Cactus movement
+let cactusPosition = 800;
+
+function moveCactus() {
+    cactusPosition -= 10;
+    cactus.style.right = cactusPosition + "px";
+
+    if (cactusPosition < -30) {
+        cactusPosition = 800;
+    }
+
+    if (cactusPosition > 50 && cactusPosition < 100 && parseInt(dino.style.bottom) < 50) {
+        alert("Game Over!");
+        clearInterval(cactusMovement);
+    }
+}
+
+let cactusMovement = setInterval(moveCactus, 20);
+
