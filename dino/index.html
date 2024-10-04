@@ -55,11 +55,16 @@
             font-size: 24px;
             margin-bottom: 20px;
         }
+        .lives {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <button class="start-button" id="startButton">スタート</button>
     <div class="timer" id="timer">タイマー: 0秒</div>
+    <div class="lives" id="lives">残機: 3</div>
     <div class="game-container" id="gameContainer">
         <div class="dino" id="dino"></div>
         <div class="cactus"></div>
@@ -69,9 +74,11 @@
         const startButton = document.getElementById('startButton');
         const gameContainer = document.getElementById('gameContainer');
         const timerDisplay = document.getElementById('timer');
+        const livesDisplay = document.getElementById('lives');
         let isJumping = false;
         let gameActive = false;
         let timer = 0;
+        let lives = 3; // 残機を設定
         let timerInterval;
 
         // スタートボタンの処理
@@ -79,9 +86,12 @@
             gameContainer.style.display = 'block'; // ゲームエリアを表示
             startButton.style.display = 'none'; // スタートボタンを非表示
             timerDisplay.style.display = 'block'; // タイマーを表示
+            livesDisplay.style.display = 'block'; // 残機を表示
             gameActive = true;
             timer = 0; // タイマーをリセット
+            lives = 3; // 残機をリセット
             timerInterval = setInterval(updateTimer, 1000); // タイマーを更新
+            updateLives();
             checkCollision();
         });
 
@@ -89,6 +99,11 @@
         function updateTimer() {
             timer++;
             timerDisplay.textContent = `タイマー: ${timer}秒`;
+        }
+
+        // 残機の更新
+        function updateLives() {
+            livesDisplay.textContent = `残機: ${lives}`;
         }
 
         // ジャンプの処理
@@ -121,12 +136,18 @@
                     dinoRect.y < cactusRect.y + cactusRect.height &&
                     dinoRect.y + dinoRect.height > cactusRect.y
                 ) {
-                    alert("ゲームオーバー！"); // ゲームオーバーのアラート
-                    gameActive = false;
-                    clearInterval(timerInterval); // タイマーを停止
-                    startButton.style.display = 'block'; // スタートボタンを再表示
-                    gameContainer.style.display = 'none'; // ゲームエリアを非表示
-                    timerDisplay.style.display = 'none'; // タイマーを非表示
+                    lives--; // 残機を減らす
+                    updateLives(); // 残機を表示更新
+
+                    if (lives <= 0) {
+                        alert("ゲームオーバー！"); // ゲームオーバーのアラート
+                        gameActive = false;
+                        clearInterval(timerInterval); // タイマーを停止
+                        startButton.style.display = 'block'; // スタートボタンを再表示
+                        gameContainer.style.display = 'none'; // ゲームエリアを非表示
+                        timerDisplay.style.display = 'none'; // タイマーを非表示
+                        livesDisplay.style.display = 'none'; // 残機を非表示
+                    }
                 }
             }, 10);
         };
