@@ -1,37 +1,36 @@
 body {
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #ffccff; /* 背景色を薄いピンクに */
-    margin: 0;
+    background-color: #87ceeb; /* 空の色 */
     font-family: Arial, sans-serif;
 }
 
 #game {
     position: relative;
-    width: 400px;
-    height: 600px;
-    border: 2px solid #35424a;
-    overflow: hidden;
+    width: 600px;
+    height: 200px;
+    border: 2px solid #000;
+    overflow: hidden; /* 中身がはみ出さないように */
 }
 
-#player {
+#dinosaur {
     position: absolute;
     bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 50px;
     width: 40px;
     height: 40px;
-    background-color: #35424a;
+    background-color: #28a745; /* ダイナソーの色 */
+    border-radius: 5px; /* 角を丸める */
 }
 
-#obstacle {
+#cactus {
     position: absolute;
-    top: -40px; /* スタート位置を画面外に */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
+    bottom: 20px;
+    right: -40px; /* 初期位置を画面外に */
+    width: 20px;
     height: 40px;
-    background-color: #ff0000; /* 障害物の色を赤に */
+    background-color: #dc3545; /* サボテンの色 */
 }
