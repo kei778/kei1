@@ -130,6 +130,7 @@
                 const dinoRect = dino.getBoundingClientRect();
                 const cactusRect = cactus.getBoundingClientRect();
 
+                // 衝突判定
                 if (
                     dinoRect.x < cactusRect.x + cactusRect.width &&
                     dinoRect.x + dinoRect.width > cactusRect.x &&
@@ -139,7 +140,14 @@
                     lives--; // 残機を減らす
                     updateLives(); // 残機を表示更新
 
-                    if (lives <= 0) {
+                    if (lives > 0) {
+                        // 残機が残っているときはDinoを一時的にジャンプさせる
+                        dino.style.bottom = '150px'; // ジャンプアニメーションのため
+                        setTimeout(() => {
+                            dino.style.bottom = '50px'; // 通常位置に戻る
+                        }, 300);
+                    } else {
+                        // 残機が0になったらゲームオーバー
                         alert("ゲームオーバー！"); // ゲームオーバーのアラート
                         gameActive = false;
                         clearInterval(timerInterval); // タイマーを停止
@@ -147,12 +155,6 @@
                         gameContainer.style.display = 'none'; // ゲームエリアを非表示
                         timerDisplay.style.display = 'none'; // タイマーを非表示
                         livesDisplay.style.display = 'none'; // 残機を非表示
-                    } else {
-                        // ジャンプの際、Dinoが少し上に上がる
-                        dino.style.bottom = '150px'; // ジャンプアニメーションのため
-                        setTimeout(() => {
-                            dino.style.bottom = '50px'; // 通常位置に戻る
-                        }, 300);
                     }
                 }
             }, 10);
