@@ -1,50 +1,38 @@
 const player = document.getElementById("player");
 const obstacle = document.getElementById("obstacle");
-let isJumping = false;
+let isInvincible = false;  // 無敵状態のフラグ
+let invincibilityDuration = 2000; // 無敵状態の継続時間（ミリ秒）
 let playerPosition = 0;
 let gravity = 0.9;
 
-// ジャンプ操作
+// スペースキーで無敵状態をトグルする
 document.addEventListener("keydown", function(event) {
-    if (event.code === "Space" && !isJumping) {
-        jump();
+    if (event.code === "Space" && !isInvincible) {
+        activateInvincibility();
     }
 });
 
-function jump() {
-    let jumpHeight = 150;
-    isJumping = true;
-
-    let upInterval = setInterval(() => {
-        if (playerPosition >= jumpHeight) {
-            clearInterval(upInterval);
-
-            // 降下
-            let downInterval = setInterval(() => {
-                if (playerPosition <= 0) {
-                    clearInterval(downInterval);
-                    isJumping = false;
-                } else {
-                    playerPosition -= 5;
-                    player.style.bottom = playerPosition + "px";
-                }
-            }, 20);
-        } else {
-            // 上昇
-            playerPosition += 20;
-            player.style.bottom = playerPosition + "px";
-        }
-    }, 20);
+// 無敵状態を有効化
+function activateInvincibility() {
+    isInvincible = true;
+    player.style.backgroundColor = "blue";  // 無敵状態の視覚的変化（青に変更）
+    setTimeout(() => {
+        isInvincible = false;
+        player.style.backgroundColor = "#ff6347";  // 元の色に戻す
+    }, invincibilityDuration);  // 指定時間後に無敵を解除
 }
 
 // 障害物とプレイヤーの衝突判定
-if (
-    obstacleRect.left < playerRect.right - 10 &&  // 調整する例
-    obstacleRect.right > playerRect.left + 10 &&
-    obstacleRect.bottom > playerRect.top + 10
-) {
-    alert("Game Over!");
-    clearInterval(checkCollision);
-    location.reload();
-}
+let checkCollision = setInterval(() => {
+    let playerRect = player.getBoundingClientRect();
+    let obstacleRect = obstacle.getBoundingClientRect();
 
+    if (!isInvincible &&  // 無敵状態でない場合のみ衝突をチェック
+        obstacleRect.left < playerRect.right &&
+        obstacleRect.right > playerRect.left &&
+        obstacleRect.bottom > playerRect.top) {
+        alert("Game Over!");
+        clearInterval(checkCollision);
+        location.reload();  // ページをリロードして再スタート
+    }
+}, 10);
