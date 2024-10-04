@@ -5,36 +5,42 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f7f7f7;
-    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
 }
 
 .game-container {
     position: relative;
     width: 800px;
     height: 200px;
-    background-color: #f4f4f4;
-    border: 2px solid #ccc;
+    background-color: #d3d3d3;
     overflow: hidden;
+    border: 2px solid #000;
 }
 
-.dino {
+.player {
     position: absolute;
     bottom: 0;
     left: 50px;
     width: 50px;
     height: 50px;
-    background-color: red; /* 仮に赤色にして見やすくします */
+    background-color: #ff6347; /* 赤いプレイヤー */
 }
 
-.cactus {
+.obstacle {
     position: absolute;
     bottom: 0;
     right: 0;
     width: 30px;
     height: 50px;
-    background-color: green; /* 見やすく緑に */
+    background-color: #008000; /* 緑の障害物 */
+    animation: moveObstacle 2s infinite linear;
 }
-.game-container {
-    background-color: #f4f4f4; /* 背景色を追加 */
+
+@keyframes moveObstacle {
+    0% {
+        right: -30px;
+    }
+    100% {
+        right: 800px;
+    }
 }
