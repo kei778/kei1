@@ -50,3 +50,31 @@ function startGame() {
 
 // ボタンが押されたらゲームを開始
 startButton.addEventListener("click", startGame);
+function startGame() {
+    console.log("ゲームが開始されました");  // ゲームが開始されるか確認
+    gameStarted = true;  // ゲーム開始フラグをtrueに設定
+    startButton.style.display = "none";  // 開始ボタンを隠す
+    gameContainer.style.display = "block";  // ゲーム画面を表示する
+
+    // 障害物とプレイヤーの衝突判定を開始
+    checkCollisionInterval = setInterval(() => {
+        let playerRect = player.getBoundingClientRect();
+        let obstacleRect = obstacle.getBoundingClientRect();
+
+        if (!isInvincible &&  // 無敵状態でない場合のみ衝突をチェック
+            obstacleRect.left < playerRect.right &&
+            obstacleRect.right > playerRect.left &&
+            obstacleRect.bottom > playerRect.top) {
+            alert("Game Over!");
+            clearInterval(checkCollisionInterval);
+            location.reload();  // ページをリロードして再スタート
+        }
+    }, 10);
+}
+
+// ボタンが押されたらゲームを開始
+startButton.addEventListener("click", () => {
+    console.log("ボタンが押されました");  // ボタンが押されたか確認
+    startGame();
+});
+
