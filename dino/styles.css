@@ -1,36 +1,37 @@
 body {
     margin: 0;
+    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #87ceeb; /* 空の色 */
+    background-color: #f7f7f7;
     font-family: Arial, sans-serif;
 }
 
-#game {
+.game-container {
     position: relative;
-    width: 600px;
+    width: 800px;
     height: 200px;
-    border: 2px solid #000;
-    overflow: hidden; /* 中身がはみ出さないように */
+    background-color: #f4f4f4;
+    border: 2px solid #ccc;
+    overflow: hidden;
 }
 
-#dinosaur {
+.dino {
     position: absolute;
-    bottom: 20px;
+    bottom: 0;
     left: 50px;
-    width: 40px;
-    height: 40px;
-    background-color: #28a745; /* ダイナソーの色 */
-    border-radius: 5px; /* 角を丸める */
+    width: 50px;
+    height: 50px;
+    background-color: #000;
 }
 
-#cactus {
+.cactus {
     position: absolute;
-    bottom: 20px;
-    right: -40px; /* 初期位置を画面外に */
-    width: 20px;
-    height: 40px;
-    background-color: #dc3545; /* サボテンの色 */
+    bottom: 0;
+    right: 0;
+    width: 30px;
+    height: 50px;
+    background-color: #008000;
 }
