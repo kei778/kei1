@@ -4,6 +4,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
     height: 100vh;
     background-color: #f0f0f0;
 }
@@ -23,7 +24,7 @@ body {
     left: 50px;
     width: 50px;
     height: 50px;
-    background-color: #ff6347; /* 赤いプレイヤー */
+    background-color: #ff6347;
 }
 
 .obstacle {
@@ -32,7 +33,7 @@ body {
     right: 0;
     width: 30px;
     height: 50px;
-    background-color: #008000; /* 緑の障害物 */
+    background-color: #008000;
     animation: moveObstacle 2s infinite linear;
 }
 
@@ -43,4 +44,18 @@ body {
     100% {
         right: 800px;
     }
+}
+
+#startButton {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+#startButton:hover {
+    background-color: #45a049;
 }
