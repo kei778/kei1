@@ -80,6 +80,8 @@
         let timer = 0;
         let lives = 3; // 残機を設定
         let timerInterval;
+        let invincible = false; // 無敵状態かどうか
+        const invincibilityTime = 2000; // 無敵時間（ミリ秒）
 
         // スタートボタンの処理
         startButton.addEventListener('click', () => {
@@ -139,6 +141,7 @@
 
                 // 衝突判定
                 if (
+                    !invincible && // 無敵状態でないとき
                     dinoRect.x < cactusRect.x + cactusRect.width &&
                     dinoRect.x + dinoRect.width > cactusRect.x &&
                     dinoRect.y < cactusRect.y + cactusRect.height &&
@@ -148,11 +151,17 @@
                     updateLives(); // 残機を表示更新
 
                     if (lives > 0) {
-                        // 残機が残っているときはDinoを一時的にジャンプさせる
+                        // 無敵状態にする
+                        invincible = true;
                         dino.style.bottom = '150px'; // ジャンプアニメーションのため
                         setTimeout(() => {
                             dino.style.bottom = '50px'; // 通常位置に戻る
                         }, 300);
+
+                        // 無敵時間のカウントダウン
+                        setTimeout(() => {
+                            invincible = false; // 無敵状態を解除
+                        }, invincibilityTime);
                     } else {
                         // 残機が0になったらゲームオーバー
                         alert("ゲームオーバー！"); // ゲームオーバーのアラート
