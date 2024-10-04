@@ -1,6 +1,5 @@
 const player = document.getElementById("player");
 const obstacle = document.getElementById("obstacle");
-const startButton = document.getElementById("startButton");
 const gameContainer = document.querySelector(".game-container");
 let isInvincible = false;  // 無敵状態のフラグ
 let invincibilityDuration = 2000; // 無敵状態の継続時間（ミリ秒）
@@ -16,6 +15,13 @@ document.addEventListener("keydown", function(event) {
     }
 });
 
+// エンターキーでゲームを開始する
+document.addEventListener("keydown", function(event) {
+    if (event.code === "Enter" && !gameStarted) {  // エンターキーが押され、ゲームが開始されていない場合
+        startGame();
+    }
+});
+
 // 無敵状態を有効化
 function activateInvincibility() {
     isInvincible = true;
@@ -28,8 +34,8 @@ function activateInvincibility() {
 
 // ゲーム開始時に実行される関数
 function startGame() {
+    console.log("ゲームが開始されました");  // ゲームが開始されたことを確認
     gameStarted = true;  // ゲーム開始フラグをtrueに設定
-    startButton.style.display = "none";  // 開始ボタンを隠す
     gameContainer.style.display = "block";  // ゲーム画面を表示する
 
     // 障害物とプレイヤーの衝突判定を開始
@@ -47,34 +53,4 @@ function startGame() {
         }
     }, 10);
 }
-
-// ボタンが押されたらゲームを開始
-startButton.addEventListener("click", startGame);
-function startGame() {
-    console.log("ゲームが開始されました");  // ゲームが開始されるか確認
-    gameStarted = true;  // ゲーム開始フラグをtrueに設定
-    startButton.style.display = "none";  // 開始ボタンを隠す
-    gameContainer.style.display = "block";  // ゲーム画面を表示する
-
-    // 障害物とプレイヤーの衝突判定を開始
-    checkCollisionInterval = setInterval(() => {
-        let playerRect = player.getBoundingClientRect();
-        let obstacleRect = obstacle.getBoundingClientRect();
-
-        if (!isInvincible &&  // 無敵状態でない場合のみ衝突をチェック
-            obstacleRect.left < playerRect.right &&
-            obstacleRect.right > playerRect.left &&
-            obstacleRect.bottom > playerRect.top) {
-            alert("Game Over!");
-            clearInterval(checkCollisionInterval);
-            location.reload();  // ページをリロードして再スタート
-        }
-    }, 10);
-}
-
-// ボタンが押されたらゲームを開始
-startButton.addEventListener("click", () => {
-    console.log("ボタンが押されました");  // ボタンが押されたか確認
-    startGame();
-});
 
