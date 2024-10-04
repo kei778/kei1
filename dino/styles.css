@@ -1,0 +1,37 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #ffccff; /* 背景色を薄いピンクに */
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+#game {
+    position: relative;
+    width: 400px;
+    height: 600px;
+    border: 2px solid #35424a;
+    overflow: hidden;
+}
+
+#player {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: #35424a;
+}
+
+#obstacle {
+    position: absolute;
+    top: -40px; /* スタート位置を画面外に */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: #ff0000; /* 障害物の色を赤に */
+}
