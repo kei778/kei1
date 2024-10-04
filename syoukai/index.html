@@ -15,18 +15,31 @@
             <h2>プロフィール</h2>
             <img id="profile-pic" src="your-image-url.jpg" alt="プロフィール画像">
             <p id="name">名前: 元木景翔</p>
-            <p id="age">年齢: あなたの年齢</p>
-            <p id="hobby">趣味: あなたの趣味</p>
+            <p id="age">年齢: 18</p>
+            <p id="hobby">趣味: ドラムを部活でしています</p>
         </section>
         <section id="contact">
-            <h2>連絡先</h2>
-            <p>Email: <span id="email">あなたのメールアドレス</span></p>
-            <button id="show-email">メールアドレスを表示</button>
+            <h2>080 2505 7033</h2>
+            <p>Email: <span id="email">wawawa@wawawa</span></p>
+            <a href="contact.html" id="show-email" class="button">連絡先ページへ</a>
         </section>
     </main>
     <footer>
-        <p>&copy; 2024 あなたの名前</p>
+        <p>&copy; 2024 元木景翔</p>
     </footer>
-    <script src="script.js"></script>
 </body>
 </html>
+/* 既存のCSSに追加 */
+.button {
+    display: inline-block;
+    padding: 10px 15px;
+    background: #35424a;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.button:hover {
+    background: #46a;
+}
