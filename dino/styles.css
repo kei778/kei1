@@ -29,7 +29,7 @@ body {
 #cactus {
     position: absolute;
     bottom: 20px;
-    right: 600px; /* 初期位置を画面外の右側に */
+    right: -40px; /* 初期位置を画面外に */
     width: 20px;
     height: 40px;
     background-color: #dc3545; /* サボテンの色 */
