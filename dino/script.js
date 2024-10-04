@@ -38,15 +38,13 @@ function jump() {
 }
 
 // 障害物とプレイヤーの衝突判定
-let checkCollision = setInterval(() => {
-    let playerRect = player.getBoundingClientRect();
-    let obstacleRect = obstacle.getBoundingClientRect();
+if (
+    obstacleRect.left < playerRect.right - 10 &&  // 調整する例
+    obstacleRect.right > playerRect.left + 10 &&
+    obstacleRect.bottom > playerRect.top + 10
+) {
+    alert("Game Over!");
+    clearInterval(checkCollision);
+    location.reload();
+}
 
-    if (obstacleRect.left < playerRect.right &&
-        obstacleRect.right > playerRect.left &&
-        obstacleRect.bottom > playerRect.top) {
-        alert("Game Over!");
-        clearInterval(checkCollision);
-        location.reload();  // ページをリロードして再スタート
-    }
-}, 10);
