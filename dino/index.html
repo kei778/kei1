@@ -147,6 +147,12 @@
                         gameContainer.style.display = 'none'; // ゲームエリアを非表示
                         timerDisplay.style.display = 'none'; // タイマーを非表示
                         livesDisplay.style.display = 'none'; // 残機を非表示
+                    } else {
+                        // ジャンプの際、Dinoが少し上に上がる
+                        dino.style.bottom = '150px'; // ジャンプアニメーションのため
+                        setTimeout(() => {
+                            dino.style.bottom = '50px'; // 通常位置に戻る
+                        }, 300);
                     }
                 }
             }, 10);
