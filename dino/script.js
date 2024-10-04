@@ -1,53 +1,62 @@
-const player = document.getElementById("player");
-const obstacle = document.getElementById("obstacle");
-const gameContainer = document.querySelector(".game-container");
-let isInvincible = false;  // 無敵状態のフラグ
-let invincibilityDuration = 2000; // 無敵状態の継続時間（ミリ秒）
-let playerPosition = 0;
-let gameStarted = false;  // ゲーム開始フラグ
-let gravity = 0.9;
-let checkCollisionInterval;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-// ページが読み込まれたらゲームを開始する
-window.onload = function() {
-    startGame();  // ゲームを開始する
-};
+let dino = { x: 50, y: 300, width: 40, height: 40 };
+let cacti = [];
+let score = 0;
+let gameOver = false;
 
-// スペースキーで無敵状態をトグルする（ゲーム開始後のみ）
-document.addEventListener("keydown", function(event) {
-    if (event.code === "Space" && !isInvincible && gameStarted) {
-        activateInvincibility();
+// 障害物を生成する関数
+function createCactus() {
+    const cactus = { x: canvas.width, y: 300, width: 20, height: 40 };
+    cacti.push(cactus);
+}
+
+// ゲームを更新する関数
+function update() {
+    if (gameOver) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'green'; // 恐竜の色
+    ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+
+    // 障害物を描画
+    cacti.forEach((cactus, index) => {
+        cactus.x -= 5; // 障害物の移動
+        ctx.fillStyle = 'brown'; // サボテンの色
+        ctx.fillRect(cactus.x, cactus.y, cactus.width, cactus.height);
+
+        // 衝突判定
+        if (
+            dino.x < cactus.x + cactus.width &&
+            dino.x + dino.width > cactus.x &&
+            dino.y < cactus.y + cactus.height &&
+            dino.y + dino.height > cactus.y
+        ) {
+            gameOver = true;
+            alert("ゲームオーバー！スコア: " + score);
+        }
+
+        // スコアの更新
+        if (cactus.x < 0) {
+            cacti.splice(index, 1);
+            score++;
+        }
+    });
+
+    requestAnimationFrame(update);
+}
+
+// キー操作の処理
+document.addEventListener('keydown', (event) => {
+    if (event.code === 'Space' && !gameOver) {
+        dino.y -= 80; // ジャンプ
+        setTimeout(() => {
+            dino.y += 80; // 降下
+        }, 300);
     }
 });
 
-// 無敵状態を有効化
-function activateInvincibility() {
-    isInvincible = true;
-    player.style.backgroundColor = "blue";  // 無敵状態の視覚的変化（青に変更）
-    setTimeout(() => {
-        isInvincible = false;
-        player.style.backgroundColor = "#ff6347";  // 元の色に戻す
-    }, invincibilityDuration);  // 指定時間後に無敵を解除
-}
-
-// ゲーム開始時に実行される関数
-function startGame() {
-    console.log("ゲームが開始されました");  // ゲームが開始されたことを確認
-    gameStarted = true;  // ゲーム開始フラグをtrueに設定
-    gameContainer.style.display = "block";  // ゲーム画面を表示する
-
-    // 障害物とプレイヤーの衝突判定を開始
-    checkCollisionInterval = setInterval(() => {
-        let playerRect = player.getBoundingClientRect();
-        let obstacleRect = obstacle.getBoundingClientRect();
-
-        if (!isInvincible &&  // 無敵状態でない場合のみ衝突をチェック
-            obstacleRect.left < playerRect.right &&
-            obstacleRect.right > playerRect.left &&
-            obstacleRect.bottom > playerRect.top) {
-            alert("Game Over!");
-            clearInterval(checkCollisionInterval);
-            location.reload();  // ページをリロードして再スタート
-        }
-    }, 10);
-}
+// 定期的に障害物を生成
+setInterval(createCactus, 1500);
+update();
