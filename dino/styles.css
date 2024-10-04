@@ -35,3 +35,6 @@ body {
     height: 50px;
     background-color: green; /* 見やすく緑に */
 }
+.game-container {
+    background-color: #f4f4f4; /* 背景色を追加 */
+}
