@@ -93,6 +93,7 @@
             timerInterval = setInterval(updateTimer, 1000); // タイマーを更新
             updateLives();
             checkCollision();
+            startCactusAnimation(); // サボテンのアニメーション開始
         });
 
         // タイマーの更新
@@ -118,9 +119,15 @@
             }
         });
 
+        // サボテンのアニメーションを開始する関数
+        function startCactusAnimation() {
+            const cactus = document.querySelector('.cactus');
+            cactus.style.animation = 'moveCactus 3s linear infinite';
+        }
+
         // ゲームオーバーの判定
-        const cactus = document.querySelector('.cactus');
         const checkCollision = () => {
+            const cactus = document.querySelector('.cactus');
             const interval = setInterval(() => {
                 if (!gameActive) {
                     clearInterval(interval); // ゲームが終了したらインターバルをクリア
