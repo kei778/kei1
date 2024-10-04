@@ -1,8 +1,10 @@
-const dino = document.getElementById("dino");
-const cactus = document.getElementById("cactus");
+const player = document.getElementById("player");
+const obstacle = document.getElementById("obstacle");
 let isJumping = false;
+let playerPosition = 0;
 let gravity = 0.9;
 
+// ジャンプ操作
 document.addEventListener("keydown", function(event) {
     if (event.code === "Space" && !isJumping) {
         jump();
@@ -10,46 +12,41 @@ document.addEventListener("keydown", function(event) {
 });
 
 function jump() {
-    let position = 0;
+    let jumpHeight = 150;
     isJumping = true;
 
     let upInterval = setInterval(() => {
-        if (position >= 150) {
+        if (playerPosition >= jumpHeight) {
             clearInterval(upInterval);
-            // Down
+
+            // 降下
             let downInterval = setInterval(() => {
-                if (position <= 0) {
+                if (playerPosition <= 0) {
                     clearInterval(downInterval);
                     isJumping = false;
                 } else {
-                    position -= 5;
-                    dino.style.bottom = position + "px";
+                    playerPosition -= 5;
+                    player.style.bottom = playerPosition + "px";
                 }
             }, 20);
         } else {
-            // Up
-            position += 20;
-            dino.style.bottom = position + "px";
+            // 上昇
+            playerPosition += 20;
+            player.style.bottom = playerPosition + "px";
         }
     }, 20);
 }
 
-// Cactus movement
-let cactusPosition = 800;
+// 障害物とプレイヤーの衝突判定
+let checkCollision = setInterval(() => {
+    let playerRect = player.getBoundingClientRect();
+    let obstacleRect = obstacle.getBoundingClientRect();
 
-function moveCactus() {
-    cactusPosition -= 10;
-    cactus.style.right = cactusPosition + "px";
-
-    if (cactusPosition < -30) {
-        cactusPosition = 800;
-    }
-
-    if (cactusPosition > 50 && cactusPosition < 100 && parseInt(dino.style.bottom) < 50) {
+    if (obstacleRect.left < playerRect.right &&
+        obstacleRect.right > playerRect.left &&
+        obstacleRect.bottom > playerRect.top) {
         alert("Game Over!");
-        clearInterval(cactusMovement);
+        clearInterval(checkCollision);
+        location.reload();  // ページをリロードして再スタート
     }
-}
-
-let cactusMovement = setInterval(moveCactus, 20);
-
+}, 10);
