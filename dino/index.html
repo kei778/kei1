@@ -7,6 +7,7 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -21,6 +22,7 @@
             border: 2px solid #000;
             background-color: #fff;
             overflow: hidden;
+            display: none; /* 初期は非表示 */
         }
         .dino {
             position: absolute;
@@ -43,20 +45,55 @@
             0% { left: 800px; }
             100% { left: -20px; }
         }
+        .start-button {
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .timer {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <button class="start-button" id="startButton">スタート</button>
+    <div class="timer" id="timer">タイマー: 0秒</div>
+    <div class="game-container" id="gameContainer">
         <div class="dino" id="dino"></div>
         <div class="cactus"></div>
     </div>
     <script>
         const dino = document.getElementById('dino');
+        const startButton = document.getElementById('startButton');
+        const gameContainer = document.getElementById('gameContainer');
+        const timerDisplay = document.getElementById('timer');
         let isJumping = false;
+        let gameActive = false;
+        let timer = 0;
+        let timerInterval;
+
+        // スタートボタンの処理
+        startButton.addEventListener('click', () => {
+            gameContainer.style.display = 'block'; // ゲームエリアを表示
+            startButton.style.display = 'none'; // スタートボタンを非表示
+            timerDisplay.style.display = 'block'; // タイマーを表示
+            gameActive = true;
+            timer = 0; // タイマーをリセット
+            timerInterval = setInterval(updateTimer, 1000); // タイマーを更新
+            checkCollision();
+        });
+
+        // タイマーの更新
+        function updateTimer() {
+            timer++;
+            timerDisplay.textContent = `タイマー: ${timer}秒`;
+        }
 
         // ジャンプの処理
         document.addEventListener('keydown', (event) => {
-            if (event.code === 'Space' && !isJumping) {
+            if (event.code === 'Space' && !isJumping && gameActive) {
                 isJumping = true;
                 dino.style.bottom = '150px';
                 setTimeout(() => {
@@ -68,20 +105,31 @@
 
         // ゲームオーバーの判定
         const cactus = document.querySelector('.cactus');
-        const checkCollision = setInterval(() => {
-            const dinoRect = dino.getBoundingClientRect();
-            const cactusRect = cactus.getBoundingClientRect();
+        const checkCollision = () => {
+            const interval = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(interval); // ゲームが終了したらインターバルをクリア
+                    return;
+                }
 
-            if (
-                dinoRect.x < cactusRect.x + cactusRect.width &&
-                dinoRect.x + dinoRect.width > cactusRect.x &&
-                dinoRect.y < cactusRect.y + cactusRect.height &&
-                dinoRect.y + dinoRect.height > cactusRect.y
-            ) {
-                alert("ゲームオーバー！");
-                clearInterval(checkCollision);
-            }
-        }, 10);
+                const dinoRect = dino.getBoundingClientRect();
+                const cactusRect = cactus.getBoundingClientRect();
+
+                if (
+                    dinoRect.x < cactusRect.x + cactusRect.width &&
+                    dinoRect.x + dinoRect.width > cactusRect.x &&
+                    dinoRect.y < cactusRect.y + cactusRect.height &&
+                    dinoRect.y + dinoRect.height > cactusRect.y
+                ) {
+                    alert("ゲームオーバー！"); // ゲームオーバーのアラート
+                    gameActive = false;
+                    clearInterval(timerInterval); // タイマーを停止
+                    startButton.style.display = 'block'; // スタートボタンを再表示
+                    gameContainer.style.display = 'none'; // ゲームエリアを非表示
+                    timerDisplay.style.display = 'none'; // タイマーを非表示
+                }
+            }, 10);
+        };
     </script>
 </body>
 </html>
