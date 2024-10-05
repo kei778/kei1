@@ -8,6 +8,7 @@
         body {
             margin: 0;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
         .game-area {
             position: relative;
@@ -42,17 +43,31 @@
                 right: 100vw;
             }
         }
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            color: red;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="game-area" onclick="jump()">
     <div class="character" id="character"></div>
-    <div class="obstacle"></div>
+    <div class="obstacle" id="obstacle"></div>
+    <div class="game-over" id="gameOver">ゲームオーバー</div>
 </div>
 
 <script>
+    let isGameOver = false;
+
     function jump() {
+        if (isGameOver) return;
+
         const character = document.getElementById('character');
         if (!character.classList.contains('jump')) {
             character.style.bottom = '120px';
@@ -61,6 +76,28 @@
             }, 300);
         }
     }
+
+    function checkCollision() {
+        const character = document.getElementById('character');
+        const obstacle = document.getElementById('obstacle');
+        const gameOverText = document.getElementById('gameOver');
+
+        const charRect = character.getBoundingClientRect();
+        const obsRect = obstacle.getBoundingClientRect();
+
+        if (
+            charRect.left < obsRect.right &&
+            charRect.right > obsRect.left &&
+            charRect.top < obsRect.bottom &&
+            charRect.bottom > obsRect.top
+        ) {
+            isGameOver = true;
+            gameOverText.style.display = 'block';
+            obstacle.style.animationPlayState = 'paused'; // 障害物の動きを止める
+        }
+    }
+
+    setInterval(checkCollision, 50); // 50msごとに衝突判定を行う
 </script>
 
 </body>
