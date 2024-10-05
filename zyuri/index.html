@@ -47,14 +47,16 @@
             background-color: blue;
             transition: bottom 0.2s;
         }
-        .obstacle {
+        .obstacle, .obstacle-2 {
             position: absolute;
             bottom: 20px;
-            right: 0;
             width: 50px;
             height: 50px;
             background-color: red;
             animation: moveObstacle 2s linear infinite;
+        }
+        .obstacle-2 {
+            display: none; /* 初期状態では2つ目の障害物は非表示 */
         }
         @keyframes moveObstacle {
             from {
@@ -96,6 +98,7 @@
 <div class="game-area" id="gameArea" onclick="jump()">
     <div class="character" id="character"></div>
     <div class="obstacle" id="obstacle"></div>
+    <div class="obstacle obstacle-2" id="obstacle2"></div>
     <div class="game-over" id="gameOver">ゲームオーバー</div>
     <div class="game-clear" id="gameClear">クリア！</div>
     <div class="timer" id="timer">タイム: 0 秒</div>
@@ -119,11 +122,22 @@
         if (!isGameOver) {
             timeElapsed++;
             document.getElementById('timer').innerText = `タイム: ${timeElapsed} 秒`;
+
+            if (timeElapsed >= 15) {
+                activateSecondObstacle(); // 15秒経過で2つ目の障害物をアクティブにする
+            }
+
             if (timeElapsed >= 30) {
                 clearInterval(timerInterval); // タイマーを停止
                 clearGame(); // 30秒でクリア
             }
         }
+    }
+
+    function activateSecondObstacle() {
+        const obstacle2 = document.getElementById('obstacle2');
+        obstacle2.style.display = 'block'; // 2つ目の障害物を表示
+        obstacle2.style.animation = 'moveObstacle 3s linear infinite'; // 障害物2を動かす
     }
 
     function jump() {
@@ -141,28 +155,47 @@
     function checkCollision() {
         const character = document.getElementById('character');
         const obstacle = document.getElementById('obstacle');
+        const obstacle2 = document.getElementById('obstacle2');
         const gameOverText = document.getElementById('gameOver');
 
         const charRect = character.getBoundingClientRect();
         const obsRect = obstacle.getBoundingClientRect();
+        const obs2Rect = obstacle2.getBoundingClientRect();
 
+        // 障害物1との衝突判定
         if (
             charRect.left < obsRect.right &&
             charRect.right > obsRect.left &&
             charRect.top < obsRect.bottom &&
             charRect.bottom > obsRect.top
         ) {
-            isGameOver = true;
-            clearInterval(timerInterval); // タイマーを停止
-            gameOverText.style.display = 'block';
-            obstacle.style.animationPlayState = 'paused'; // 障害物の動きを止める
+            gameOver();
         }
+
+        // 障害物2との衝突判定
+        if (
+            charRect.left < obs2Rect.right &&
+            charRect.right > obs2Rect.left &&
+            charRect.top < obs2Rect.bottom &&
+            charRect.bottom > obs2Rect.top
+        ) {
+            gameOver();
+        }
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        clearInterval(timerInterval); // タイマーを停止
+        document.getElementById('gameOver').style.display = 'block';
+        document.getElementById('obstacle').style.animationPlayState = 'paused'; // 障害物の動きを止める
+        document.getElementById('obstacle2').style.animationPlayState = 'paused'; // 障害物2の動きを止める
     }
 
     function clearGame() {
         const gameClearText = document.getElementById('gameClear');
         gameClearText.style.display = 'block'; // クリアメッセージを表示
         document.getElementById('obstacle').style.animationPlayState = 'paused'; // 障害物を止める
+        document.getElementById('obstacle2').style.animationPlayState = 'paused'; // 障害物2を止める
         isGameOver = true;
     }
 
