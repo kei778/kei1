@@ -47,7 +47,10 @@
             background-color: blue;
             transition: bottom 0.2s;
         }
-        .obstacle, .obstacle-2 {
+        .invincible {
+            background-color: yellow; /* 無敵状態のキャラクターを黄色にする */
+        }
+        .obstacle, .obstacle-2, .random-obstacle {
             position: absolute;
             bottom: 20px;
             width: 50px;
@@ -57,6 +60,10 @@
         }
         .obstacle-2 {
             display: none; /* 初期状態では2つ目の障害物は非表示 */
+        }
+        .random-obstacle {
+            display: none; /* 初期状態では不規則障害物は非表示 */
+            animation: none; /* ランダムな動きのため、通常のアニメーションを無効化 */
         }
         @keyframes moveObstacle {
             from {
@@ -78,11 +85,17 @@
         .game-clear {
             color: green;
         }
-        .timer {
+        .timer, .lives {
             position: absolute;
             top: 10px;
-            left: 10px;
             font-size: 1.5rem;
+        }
+        .timer {
+            left: 10px;
+            color: #000;
+        }
+        .lives {
+            right: 10px;
             color: #000;
         }
     </style>
@@ -99,22 +112,30 @@
     <div class="character" id="character"></div>
     <div class="obstacle" id="obstacle"></div>
     <div class="obstacle obstacle-2" id="obstacle2"></div>
+    <div class="obstacle random-obstacle" id="randomObstacle"></div>
     <div class="game-over" id="gameOver">ゲームオーバー</div>
     <div class="game-clear" id="gameClear">クリア！</div>
     <div class="timer" id="timer">タイム: 0 秒</div>
+    <div class="lives" id="lives">残機: 3</div>
 </div>
 
 <script>
     let isGameOver = false;
     let timeElapsed = 0;
     let timerInterval;
+    let lives = 3;
+    let invincible = false; // 無敵状態のフラグ
+    let randomMoveInterval;
 
     function startGame() {
         document.getElementById('startScreen').style.display = 'none'; // スタート画面を非表示
         document.getElementById('gameArea').style.display = 'block';   // ゲーム画面を表示
         isGameOver = false;
         timeElapsed = 0;
+        lives = 3;
+        invincible = false;
         document.getElementById('timer').innerText = `タイム: ${timeElapsed} 秒`;
+        document.getElementById('lives').innerText = `残機: ${lives}`;
         timerInterval = setInterval(updateTimer, 1000); // 1秒ごとにタイマーを更新
     }
 
@@ -127,9 +148,13 @@
                 activateSecondObstacle(); // 15秒経過で2つ目の障害物をアクティブにする
             }
 
-            if (timeElapsed >= 30) {
+            if (timeElapsed >= 40) {
+                activateRandomObstacle(); // 40秒経過で不規則な障害物をアクティブにする
+            }
+
+            if (timeElapsed >= 60) {
                 clearInterval(timerInterval); // タイマーを停止
-                clearGame(); // 30秒でクリア
+                clearGame(); // 60秒でクリア
             }
         }
     }
@@ -138,6 +163,20 @@
         const obstacle2 = document.getElementById('obstacle2');
         obstacle2.style.display = 'block'; // 2つ目の障害物を表示
         obstacle2.style.animation = 'moveObstacle 3s linear infinite'; // 障害物2を動かす
+    }
+
+    function activateRandomObstacle() {
+        const randomObstacle = document.getElementById('randomObstacle');
+        randomObstacle.style.display = 'block'; // 不規則な障害物を表示
+        randomMoveInterval = setInterval(moveRandomObstacle, 500); // 500msごとにランダムに移動
+    }
+
+    function moveRandomObstacle() {
+        const randomObstacle = document.getElementById('randomObstacle');
+        const randomX = Math.floor(Math.random() * (window.innerWidth - 50)); // ランダムなX座標
+        const randomY = Math.floor(Math.random() * (window.innerHeight - 50)); // ランダムなY座標
+        randomObstacle.style.left = `${randomX}px`;
+        randomObstacle.style.top = `${randomY}px`;
     }
 
     function jump() {
@@ -153,14 +192,17 @@
     }
 
     function checkCollision() {
+        if (invincible || isGameOver) return; // 無敵状態なら衝突判定を行わない
+
         const character = document.getElementById('character');
         const obstacle = document.getElementById('obstacle');
         const obstacle2 = document.getElementById('obstacle2');
-        const gameOverText = document.getElementById('gameOver');
+        const randomObstacle = document.getElementById('randomObstacle');
 
         const charRect = character.getBoundingClientRect();
         const obsRect = obstacle.getBoundingClientRect();
         const obs2Rect = obstacle2.getBoundingClientRect();
+        const randObsRect = randomObstacle.getBoundingClientRect();
 
         // 障害物1との衝突判定
         if (
@@ -169,7 +211,7 @@
             charRect.top < obsRect.bottom &&
             charRect.bottom > obsRect.top
         ) {
-            gameOver();
+            loseLife();
         }
 
         // 障害物2との衝突判定
@@ -179,13 +221,46 @@
             charRect.top < obs2Rect.bottom &&
             charRect.bottom > obs2Rect.top
         ) {
+            loseLife();
+        }
+
+        // 不規則障害物との衝突判定
+        if (
+            charRect.left < randObsRect.right &&
+            charRect.right > randObsRect.left &&
+            charRect.top < randObsRect.bottom &&
+            charRect.bottom > randObsRect.top
+        ) {
+            loseLife();
+        }
+    }
+
+    function loseLife() {
+        if (invincible) return; // 無敵状態なら残機を減らさない
+
+        lives--;
+        document.getElementById('lives').innerText = `残機: ${lives}`;
+        activateInvincibility(); // 無敵状態を発動
+        
+        if (lives <= 0) {
             gameOver();
         }
+    }
+
+    function activateInvincibility() {
+        invincible = true;
+        const character = document.getElementById('character');
+        character.classList.add('invincible'); // キャラクターを無敵状態にする
+        setTimeout(() => {
+            invincible = false;
+            character.classList.remove('invincible'); // 無敵状態を解除
+        }, 1000); // 1秒間無敵
     }
 
     function gameOver() {
         isGameOver = true;
         clearInterval(timerInterval); // タイマーを停止
+        clearInterval(randomMoveInterval); // 不規則障害物の移動を停止
         document.getElementById('gameOver').style.display = 'block';
         document.getElementById('obstacle').style.animationPlayState = 'paused'; // 障害物の動きを止める
         document.getElementById('obstacle2').style.animationPlayState = 'paused'; // 障害物2の動きを止める
@@ -194,6 +269,7 @@
     function clearGame() {
         const gameClearText = document.getElementById('gameClear');
         gameClearText.style.display = 'block'; // クリアメッセージを表示
+        clearInterval(randomMoveInterval); // 不規則障害物の移動を停止
         document.getElementById('obstacle').style.animationPlayState = 'paused'; // 障害物を止める
         document.getElementById('obstacle2').style.animationPlayState = 'paused'; // 障害物2を止める
         isGameOver = true;
