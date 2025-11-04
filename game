@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ジャンプで障害物をよけるゲーム</title>
+  <style>
+    :root{--bg:#0f1724;--ground:#1f2937;--player:#10b981;--ob:#ef4444;--accent:#f59e0b}
+    html,body{height:100%;margin:0;font-family:ui-sans-serif,system-ui,-apple-system,'Noto Sans JP',sans-serif;background:var(--bg);color:#e6eef8}
+    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+    .card{width:980px;max-width:100%;background:linear-gradient(180deg,rgba(255,255,255,0.03),transparent);border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    h1{font-size:18px;margin:0}
+    .controls{font-size:13px;opacity:.9}
+    #gameCanvas{display:block;background:linear-gradient(180deg,#061125 0%, #07203a 60%);width:100%;height:360px;border-radius:8px}
+    .hud{display:flex;gap:12px;align-items:center;margin-top:10px}
+    .panel{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px;font-size:14px}
+    .btn{background:var(--accent);border:none;color:#071127;padding:6px 10px;border-radius:8px;font-weight:600;cursor:pointer}
+    .footer{margin-top:12px;font-size:13px;color:#cfe8ff;opacity:.9}
+    @media (max-width:520px){#gameCanvas{height:220px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <header>
+        <h1>ジャンプで障害物をよけるゲーム</h1>
+        <div class="controls">操作: <strong>スペース / ↑</strong>でジャンプ、タップでも可</div>
+      </header>
+
+      <canvas id="gameCanvas" width="980" height="360" aria-label="ジャンプで障害物をよけるゲーム" role="img"></canvas>
+
+      <div class="hud">
+        <div class="panel">スコア: <span id="score">0</span></div>
+        <div class="panel">ベスト: <span id="best">0</span></div>
+        <button id="restartBtn" class="btn">リスタート</button>
+      </div>
+
+      <div class="footer">
+        <div>シンプルな1ファイルHTMLゲームです。ファイルを保存してブラウザで開くだけで遊べます。</div>
+        <div>作成: ChatGPT — 使い方: スペースキー / ↑ / 画面タップでジャンプ。</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    // サイズをCSSに合わせて調整（高DPI対応）
+    function resizeCanvas(){
+      const ratio = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      canvas.width = Math.floor(w * ratio);
+      canvas.height = Math.floor(h * ratio);
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // HUD
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // ゲーム設定
+    const G = {
+      gravity: 1400, // px/s^2
+      jumpVelocity: -520, // px/s
+      playerW: 42,
+      playerH: 42,
+      groundPct: 0.18 // canvas height の下からの割合
+    };
+
+    // ステート
+    let lastTime = 0;
+    let running = false;
+    let score = 0;
+    let best = Number(localStorage.getItem('jump-avoid-best') || 0);
+    bestEl.textContent = String(best);
+
+    // プレイヤー
+    class Player{
+      constructor(x,y){
+        this.x = x; this.y = y; // 上端座標
+        this.vy = 0;
+        this.w = G.playerW; this.h = G.playerH;
+        this.grounded = false;
+      }
+      update(dt, groundY){
+        this.vy += G.gravity * dt;
+        this.y += this.vy * dt;
+        if(this.y + this.h > groundY){
+          this.y = groundY - this.h;
+          this.vy = 0;
+          this.grounded = true;
+        } else {
+          this.grounded = false;
+        }
+      }
+      jump(){
+        if(this.grounded){
+          this.vy = G.jumpVelocity;
+          this.grounded = false;
+        }
+      }
+      draw(ctx){
+        // シンプルな影と四角
+        ctx.save();
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--player') || '#10b981';
+        roundRect(ctx, this.x, this.y, this.w, this.h, 6);
+        ctx.fill();
+        ctx.restore();
+      }
+      getRect(){return {x:this.x, y:this.y, w:this.w, h:this.h}};
+    }
+
+    // 障害物
+    class Obstacle{
+      constructor(x,y,w,h, speed){
+        this.x = x; this.y = y; this.w = w; this.h = h; this.speed = speed;
+      }
+      update(dt){ this.x -= this.speed * dt; }
+      draw(ctx){
+        ctx.save();
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ob') || '#ef4444';
+        roundRect(ctx, this.x, this.y, this.w, this.h, 6); ctx.fill(); ctx.restore();
+      }
+      isOff(){ return this.x + this.w < -10; }
+      getRect(){return {x:this.x,y:this.y,w:this.w,h:this.h}};
+    }
+
+    // ユーティリティ
+    function roundRect(ctx,x,y,w,h,r){
+      const radius = typeof r === 'number' ? r : 6;
+      ctx.beginPath();
+      ctx.moveTo(x+radius, y);
+      ctx.arcTo(x+w, y, x+w, y+h, radius);
+      ctx.arcTo(x+w, y+h, x, y+h, radius);
+      ctx.arcTo(x, y+h, x, y, radius);
+      ctx.arcTo(x, y, x+w, y, radius);
+      ctx.closePath();
+    }
+    function rectsOverlap(a,b){
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    // ゲームワールド
+    let player, obstacles, spawnTimer, spawnInterval, baseSpeed, groundY;
+    function reset(){
+      lastTime = performance.now();
+      score = 0; scoreEl.textContent = '0';
+      baseSpeed = 280; // px/s
+      spawnInterval = 1.05; // s
+      spawnTimer = 0;
+      obstacles = [];
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      groundY = h * (1 - G.groundPct);
+      player = new Player(90, groundY - G.playerH);
+      running = true;
+    }
+
+    function spawnObstacle(){
+      const h = canvas.clientHeight;
+      const groundTop = groundY;
+      // ランダムで大きさを変える
+      const sizes = [30,40,48,64];
+      const ow = sizes[Math.floor(Math.random()*sizes.length)];
+      const oh = ow + Math.floor(Math.random()*40);
+      const x = canvas.clientWidth + 20;
+      const y = groundTop - oh;
+      const speed = baseSpeed + Math.min(score/5, 600);
+      obstacles.push(new Obstacle(x,y,ow,oh,speed));
+    }
+
+    function update(dt){
+      if(!running) return;
+      // 難易度徐々に上げる
+      baseSpeed += 6 * dt; // 徐々に速く
+      spawnTimer -= dt;
+      if(spawnTimer <= 0){ spawnObstacle(); spawnTimer = spawnInterval * (0.85 + Math.random()*0.4); }
+
+      player.update(dt, groundY);
+      obstacles.forEach(o=>o.update(dt));
+      obstacles = obstacles.filter(o=>!o.isOff());
+
+      // 衝突検出
+      for(const o of obstacles){
+        if(rectsOverlap(player.getRect(), o.getRect())){ gameOver(); break; }
+      }
+
+      // スコアは障害物を通過した分
+      for(const o of obstacles){
+        if(!o.scored && o.x + o.w < player.x){ score += 1; o.scored = true; scoreEl.textContent = String(score); }
+      }
+    }
+
+    function draw(){
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      // 背景
+      ctx.clearRect(0,0,w,h);
+
+      // 地面
+      ctx.save();
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ground') || '#1f2937';
+      ctx.fillRect(0, groundY, w, h - groundY);
+      // 地面のライン
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      ctx.fillRect(0, groundY-6, w, 6);
+      ctx.restore();
+
+      // プレイヤー
+      player.draw(ctx);
+      // 障害物
+      obstacles.forEach(o=>o.draw(ctx));
+
+      if(!running){
+        // Game Over 表示
+        ctx.save();
+        ctx.fillStyle = 'rgba(2,6,23,0.6)';
+        ctx.fillRect(w*0.12, h*0.25, w*0.76, h*0.5);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 26px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('ゲームオーバー', w/2, h*0.45);
+        ctx.font = '16px sans-serif'; ctx.fillText('リスタート: ボタンを押すか Enter / クリック / タップ', w/2, h*0.53);
+        ctx.restore();
+      }
+    }
+
+    function loop(now){
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+      update(dt);
+      draw();
+      if(running) requestAnimationFrame(loop);
+    }
+
+    function gameOver(){
+      running = false;
+      // ベスト更新
+      if(score > best){ best = score; localStorage.setItem('jump-avoid-best', String(best)); bestEl.textContent = String(best); }
+      // 最後の一回だけ draw() してメッセージを表示
+      draw();
+    }
+
+    // 入力
+    function handleJump(){ player.jump(); }
+    window.addEventListener('keydown',(e)=>{
+      if([' ','ArrowUp','w','W'].includes(e.key)){
+        e.preventDefault(); handleJump();
+      }
+      if(e.key === 'Enter' && !running){ reset(); requestAnimationFrame(loop); }
+    });
+
+    canvas.addEventListener('touchstart',(e)=>{ e.preventDefault(); if(!running){ reset(); requestAnimationFrame(loop); } handleJump(); }, {passive:false});
+    canvas.addEventListener('mousedown',(e)=>{ if(!running){ reset(); requestAnimationFrame(loop); } handleJump(); });
+
+    restartBtn.addEventListener('click', ()=>{ reset(); requestAnimationFrame(loop); });
+
+    // 初期開始
+    reset(); requestAnimationFrame(loop);
+
+    // ウィンドウサイズ初期化に合わせて groundY を更新するための監視
+    const ro = new ResizeObserver(()=>{ resizeCanvas(); const h = canvas.clientHeight; groundY = h * (1 - G.groundPct); });
+    ro.observe(canvas);
+
+  })();
+  </script>
+</body>
+</html>
